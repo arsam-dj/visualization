@@ -1,0 +1,48 @@
+---
+title: "Yearly Weather Data in Toronto"
+author: "Alex Daiejavad"
+date: "2024-01-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width=12, fig.height=11)
+```
+
+## Data Source
+
+Climate Daily/Forecast/Sun from: 
+
+https://toronto.weatherstats.ca/download.html
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+to_forecast = data.table::fread("C:/Users/peree/OneDrive/Desktop/Educational/ClimateData/weatherstats_toronto_daily.csv", select = c("date", "avg_temperature"))
+
+to_forecast = 
+  to_forecast %>%
+  mutate(year = lubridate::year(date),
+         month = as.factor(lubridate::month(date)),
+         day = lubridate::day(date)) %>%
+  group_by(year) %>% 
+  mutate(position = rev(seq(1:n()))) %>%
+  relocate(date, year, month, day, position, avg_temperature)
+
+#to_forecast_truncate = filter(to_forecast, year > 1979)
+ggplot(to_forecast, aes(x=position, y=avg_temperature, color=as.character(year))) + 
+  geom_line() + 
+  scale_x_continuous(breaks = c(1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335),
+                     labels = c("Jan1", "Feb1", "Mar1", "Apr1", "May1", "Jun1", 
+                                "Jul1", "Aug1", "Sept1", "Oct1", "Nov1", "Dec1")) +
+  #scale_color_grey() +
+  theme(legend.position = "bottom") +
+  labs(color = "Year", 
+       title = "Recorded Average Temperature for Each Day in Toronto (1937 - 2024)", 
+       x = "Day", 
+       y = "Average Temperature") +
+  guides(color = guide_legend(nrow = 10))
+
+
+```
